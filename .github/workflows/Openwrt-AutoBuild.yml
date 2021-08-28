@@ -208,7 +208,25 @@ jobs:
         if [ ${{matrix.target}} == "x86_64" ]; then
         echo "NOTICE=请分配不少于1G的存储容量" >> $GITHUB_ENV
         fi
-
+        
+    - name: xz package
+      id: xz_package
+      run: |
+        cd openwrt
+        tar cvf openwrt.tar ./
+        xz -z openwrt.tar 
+        
+    - name: Upload openwrt for release
+      uses: softprops/action-gh-release@master
+      continue-on-error: true
+      if: env.REPO_TOKEN
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+      with:
+        files: "openwrt/openwrt.tar.xz"
+        name: Release
+        tag_name: openwrt.tar.xz
+        
     - name: Deploy files to server
       uses: easingthemes/ssh-deploy@main
       if: env.SSH_PRIVATE_KEY && ! contains(github.event.action, 'noser')
